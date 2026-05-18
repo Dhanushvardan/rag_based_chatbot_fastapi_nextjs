@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from langchain_openai import ChatOpenAI
+from typing import TypedDict
 
 
 load_dotenv()
@@ -20,14 +21,16 @@ class state(TypedDict):
     txt : str
     ct :str
     qn :str
+    ot :str
 
 embeddings = HuggingFaceEmbeddings(model_name = "sentence-transformers/paraphrase-MiniLM-L3-v2")
 
 
 
-llm = chatOpenAI(
+llm = ChatOpenAI(
     model = "llama-3.3-70b-versatile",
     base_url = "https://api.groq.com/openai/v1",
+    
 
 )
     
@@ -53,7 +56,7 @@ def llmNode(state:state):
 
     res = llm.invoke(ct + "this is the context" + "answer me" + qs)
 
-    return res.content
+    return {"ot":res.content}
 
 
 
@@ -61,7 +64,7 @@ graph = StateGraph(state)
 graph.add_node("ragNode", ragNode)
 graph.add_node("llmNode",llmNode)
 graph.set_entry_point("ragNode")
-graph.add_edge(ragNode,llmNode)
+graph.add_edge("ragNode","llmNode")
 
 
 app_graph = graph.compile()
@@ -109,7 +112,8 @@ def rgchat(file : UploadFile = File(...)):
 @app.post("/askragai")
 def askragAi(req:qst):
     res = app_graph.invoke({"qs":req.qs})
-    return res
+    print(res)
+    return res["ot"]
 
 @app.post("askai")
 def askAi(req:qst):

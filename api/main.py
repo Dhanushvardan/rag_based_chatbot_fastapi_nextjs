@@ -1,6 +1,81 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-import pdfplumber   
+import pdfplumber
+from langgraph.graph import StateGraph
+from langchain_core.documents import Document    
+from langchain_community.vectorstores import FAISS
+from langchain_huggingface import HuggingFaceEmbeddings
+import os
+from dotenv import load_dotenv
+from pydantic import BaseModel
+from langchain_openai import ChatOpenAI
+
+
+load_dotenv()
+
+class qst(BaseModel):
+    qst :str
+
+class state(TypedDict):
+    txt : str
+    ct :str
+    qn :str
+
+embeddings = HuggingFaceEmbeddings(model_name = "sentence-transformers/paraphrase-MiniLM-L3-v2")
+
+
+
+llm = chatOpenAI(
+    model = "llama-3.3-70b-versatile",
+    base_url = "https://api.groq.com/openai/v1",
+
+)
+    
+
+
+def ragNode(state:state):
+
+    doc = state["txt"]
+    qs = state["qs"]
+
+    dmt = [Document(page_content=doc,metadata={"id":1})]
+    vectorstore = FAISS.from_documents(dmt,embeddings)
+    retriever = vectorstore.as_retriever()
+    dd = retriever.get_relevant_documents(qs)
+    ct = "\n".join([d.page_content for d in dd])
+
+    return {"qs":text,"txt":state["txt"],"ct":ct}
+
+
+def llmNode(state:state):
+    ct = state["ct"]
+    qs = state["qs"]
+
+    res = llm.invoke(ct + "this is the context" + "answer me" + qs)
+
+    return res.content
+
+
+
+graph = StateGraph(state)
+graph.add_node("ragNode", ragNode)
+graph.add_node("llmNode",llmNode)
+graph.set_entry_point("ragNode")
+graph.add_edge(ragNode,llmNode)
+
+
+app_graph = graph.compile()
+
+
+
+
+
+
+
+
+
+
+
 
 app = FastAPI()
 
@@ -25,4 +100,19 @@ def rgchat(file : UploadFile = File(...)):
 
 
     print(text)
+
+
+
+
     return "received doc"
+
+@app.post("/askragai")
+def askragAi(req:qst):
+    res = app_graph.invoke({"qs":req.qs})
+    return res
+
+@app.post("askai")
+def askAi(req:qst):
+    res = llm.invoke("answer me for" + req.qs)
+    return res
+

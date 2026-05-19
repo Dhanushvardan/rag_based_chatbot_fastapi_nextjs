@@ -10,6 +10,31 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 from langchain_openai import ChatOpenAI
 from typing import TypedDict
+from sqlalchemy import create_engine, Column, Integer, String, Text
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+
+
+
+engine = create_engine(database_url)
+
+sessionLocal = sessionmaker(autoflush=False, autocommit = False, bind=engine)
+
+Base = declarative_base()
+
+
+class chatTable(Base):
+    __tablename__ = "chatBase"
+
+    id = Column(Integer, primary_key=True, index=True)
+    question = Column(Text)
+    answer = Column(Text)
+
+
+Base.metadata.create_all(bind=engine)
+
+
+    
 
 
 load_dotenv()
@@ -20,7 +45,7 @@ class qst(BaseModel):
 class state(TypedDict):
     txt : str
     ct :str
-    qn :str
+    qs :str
     ot :str
 
 embeddings = HuggingFaceEmbeddings(model_name = "sentence-transformers/paraphrase-MiniLM-L3-v2")
@@ -111,12 +136,12 @@ def rgchat(file : UploadFile = File(...)):
 
 @app.post("/askragai")
 def askragAi(req:qst):
-    res = app_graph.invoke({"qs":req.qs})
+    res = app_graph.invoke({"qs":req.qst,"txt":text})
     print(res)
-    return res["ot"]
+    return str(res["ot"])
 
 @app.post("askai")
 def askAi(req:qst):
-    res = llm.invoke("answer me for" + req.qs)
+    res = llm.invoke("answer me for" + req.qst)
     return res
 

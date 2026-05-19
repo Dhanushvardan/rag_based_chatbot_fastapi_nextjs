@@ -16,7 +16,7 @@ export default function ragchatbot(){
     }
 
     const askai = async()=>{
-        const res = await axios.post("http://127.0.0.1:8000/askragai",{"qs":qs});
+        const res = await axios.post("http://127.0.0.1:8000/askragai",{qst:qs});
 
         setRes(res.data);
     }

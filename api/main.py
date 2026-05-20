@@ -23,7 +23,7 @@ sessionLocal = sessionmaker(autoflush=False, autocommit = False, bind=engine)
 Base = declarative_base()
 
 
-class chatTable(Base):
+class chat(Base):
     __tablename__ = "chatBase"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -56,7 +56,6 @@ llm = ChatOpenAI(
     model = "llama-3.3-70b-versatile",
     base_url = "https://api.groq.com/openai/v1",
     
-
 )
     
 
@@ -138,7 +137,26 @@ def rgchat(file : UploadFile = File(...)):
 def askragAi(req:qst):
     res = app_graph.invoke({"qs":req.qst,"txt":text})
     print(res)
+
+    db = sessionLocal()
+
+    new_chat = chat(
+        question = req.qst,
+        answer= str(res["ot"])
+    )
+
+    db.add(new_chat)
+    db.commit()
+    db.refresh(new_chat)
+    db.close()
+
+
+    db = sessionLocal()
+    rs = db.query(chat).filter(chat.id == 1).first()
+    print(rs.question)
+    print(rs.answer)
     return str(res["ot"])
+  
 
 @app.post("askai")
 def askAi(req:qst):

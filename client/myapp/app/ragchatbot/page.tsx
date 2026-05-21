@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import axios from "axios";
+ import "@/app/globals.scss";;
 
 export default function ragchatbot(){
     const [ff,setF] = useState<File | null>(null);
@@ -22,11 +23,20 @@ export default function ragchatbot(){
     }
     return(
         <div className="rcpWholeBody">
-            <input type="file" onChange={(e)=>{setF(e.target.files?.[0] || null)}}></input>
-            <button onClick={sendAi}>Enter</button>
-            <label>Ask here</label>
-            <input onChange={(e)=>{setQs(e.target.value)}} ></input>
-            <button onClick={askai}>Ask</button>
+            <div className="Qs">Question</div>
+            <div className="Ans">Answer</div>
+            <div className="header"></div>
+            <div className="chatBody"></div>
+            <div className="footer">
+            <div className="fileEnter"><input type="file" onChange={(e)=>{setF(e.target.files?.[0] || null)}}></input>
+            <button onClick={sendAi}>Enter</button></div>
+            <div className="chatEnter">
+                
+            <input placeholder=" Ask here " className="enterchat" onChange={(e)=>{setQs(e.target.value)}} ></input>
+            <button className="chatEnterButton" onClick={askai}>Ask</button>
+            </div>
+            </div>
+            
             {res}
         </div>
     );

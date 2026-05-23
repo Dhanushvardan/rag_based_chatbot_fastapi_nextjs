@@ -31,10 +31,17 @@ class chat(Base):
     answer = Column(Text)
 
 
+class cht(Base):
+    __tablename__ = "chatBase2"
+
+    id = Column(Integer,primary_key=True,index=True)
+    question=Column(String)
+    answer=Column(String)
+
 Base.metadata.create_all(bind=engine)
 
 
-    
+
 
 
 load_dotenv()
@@ -152,14 +159,31 @@ def askragAi(req:qst):
 
 
     db = sessionLocal()
-    rs = db.query(chat).filter(chat.id == 1).first()
-    print(rs.question)
-    print(rs.answer)
-    return str(res["ot"])
+    rs = db.query(chat).all()
+    
+    return rs
   
 
-@app.post("askai")
+@app.post("/askai")
 def askAi(req:qst):
     res = llm.invoke("answer me for" + req.qst)
-    return res
+
+    db = sessionLocal()
+    new_cht = cht(
+        question=req.qst,
+        answer=res.content,
+    )
+
+
+    db.add(new_cht)
+    db.commit()
+    db.refresh(new_cht)
+    db.close()
+
+    db = sessionLocal()
+    rs = db.query(cht).all()
+    db.close()
+
+
+    return rs
 

@@ -237,5 +237,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 👤 Author
 
-**D** — MERN Stack & AI Engineer  
+**Dhanushvardan A V J** — MERN Stack & AI Engineer  
 [GitHub](https://github.com/your-username) · [LinkedIn](https://linkedin.com/in/your-profile)
